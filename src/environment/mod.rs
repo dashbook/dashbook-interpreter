@@ -95,6 +95,8 @@ fn create_global_proxy(global: &js_sys::Object) -> js_sys::Proxy {
             || propKey === \"clearTimeout\"
             || propKey === \"setInterval\"
             || propKey === \"clearInterval\"
+            || propKey === \"TextEncoder\"
+            || propKey === \"TextDecoder\"
         ) {return Reflect.get(...arguments);} return undefined;",
     );
     let apply =

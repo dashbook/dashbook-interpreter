@@ -346,6 +346,8 @@ fn in_global_this(input: &str) -> bool {
         || input == "clearTimeout"
         || input == "setInterval"
         || input == "clearInterval"
+        || input == "TextEncoder"
+        || input == "TextDecoder"
     {
         true
     } else {
