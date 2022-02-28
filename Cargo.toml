@@ -2,7 +2,7 @@
 authors = ["Jan <jankaul@mailbox.org>"]
 edition = "2021"
 name = "weblab-interpreter"
-version = "0.2.10"
+version = "0.2.11"
 
 [lib]
 crate-type = ["cdylib", "rlib"]
