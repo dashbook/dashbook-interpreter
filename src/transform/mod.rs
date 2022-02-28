@@ -54,20 +54,21 @@ impl Fold for Folded {
 
     fn fold_expr(&mut self, expr: Expr) -> Expr {
         let expr = match expr {
-            Expr::Member(expr) => {
-                if expr.computed {
-                    Expr::Member(MemberExpr {
-                        obj: expr.obj.fold_with(self),
-                        prop: expr.prop.fold_with(self),
-                        ..expr
-                    })
-                } else {
-                    Expr::Member(MemberExpr {
-                        obj: expr.obj.fold_with(self),
-                        ..expr
-                    })
-                }
-            }
+            Expr::Member(expr) => match &expr.prop {
+                MemberProp::Ident(_) => Expr::Member(MemberExpr {
+                    obj: expr.obj.fold_with(self),
+                    ..expr
+                }),
+                MemberProp::PrivateName(_) => Expr::Member(MemberExpr {
+                    obj: expr.obj.fold_with(self),
+                    ..expr
+                }),
+                MemberProp::Computed(_) => Expr::Member(MemberExpr {
+                    obj: expr.obj.fold_with(self),
+                    prop: expr.prop.fold_with(self),
+                    ..expr
+                }),
+            },
             _ => expr.fold_children_with(self),
         };
 

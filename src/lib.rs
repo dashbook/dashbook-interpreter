@@ -84,8 +84,7 @@ pub async fn eval_cell(input: String) -> Result<JsValue, JsValue> {
     let handler = Handler::with_tty_emitter(ColorConfig::Auto, true, false, Some(cm.clone()));
 
     let fm = cm.new_source_file(FileName::Custom("Weblab_cell".into()), input.into());
-    let mut es_config: EsConfig = Default::default();
-    es_config.top_level_await = true;
+    let es_config: EsConfig = Default::default();
     let lexer = Lexer::new(
         Syntax::Es(es_config),
         Default::default(),

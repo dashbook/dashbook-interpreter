@@ -92,23 +92,19 @@ pub async fn call_function<'env>(
 ) -> Result<RcValue, Error> {
     let mut this = Rc::new(RefCell::new(Value::Undefined(JsValue::undefined())));
     let function = match call.callee {
-        ExprOrSuper::Expr(expr) => match *expr {
+        Callee::Expr(expr) => match *expr {
             Expr::Member(memexpr) => {
-                this = match &memexpr.obj {
-                    ExprOrSuper::Expr(callee) => {
-                        evaluator::expressions::eval_expr(*callee.clone(), envs).await
-                    }
-                    _ => Err(Error::from(js_sys::ReferenceError::new(&format!(
-                        "ReferenceError: Object {:?} could not be found.",
-                        memexpr.obj
-                    )))),
-                }?;
+                this = evaluator::expressions::eval_expr(*memexpr.obj.clone(), envs).await?;
                 evaluator::objects::eval_member_expr(memexpr, envs).await
             }
             _ => evaluator::expressions::eval_expr(*expr, envs).await,
         },
-        ExprOrSuper::Super(_) => Err(Error::new(&format!(
+        Callee::Super(_) => Err(Error::new(&format!(
             "ERROR: Function callee super {:?} is not supported.",
+            call.callee
+        ))),
+        Callee::Import(_) => Err(Error::new(&format!(
+            "ERROR: Dynamic import for {:?} is not supported.",
             call.callee
         ))),
     }?;

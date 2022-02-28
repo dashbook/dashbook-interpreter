@@ -254,40 +254,26 @@ pub async fn eval_member_expr(
     memexpr: MemberExpr,
     envs: &mut Environments,
 ) -> Result<RcValue, Error> {
-    match memexpr.obj {
-        ExprOrSuper::Expr(expr) => {
-            let obj = evaluator::expressions::eval_expr(*expr, envs).await?;
-            if memexpr.computed {
-                let prop = evaluator::expressions::eval_expr(*memexpr.prop, envs).await?;
-                let prop = prop.borrow();
-                match Reflect::get(obj.borrow().as_ref(), prop.as_ref()).map_err(|x| Error::from(x))
-                {
-                    Ok(js) => Ok(Value::from(js).into()),
-                    Err(err) => Err(err),
-                }
-            } else {
-                match *memexpr.prop {
-                    Expr::Ident(ident) => {
-                        match Reflect::get(
-                            obj.borrow().as_ref(),
-                            &JsValue::from(ident.sym.to_string()),
-                        )
-                        .map_err(|x| Error::from(x))
-                        {
-                            Ok(js) => Ok(Value::from(js).into()),
-                            Err(err) => Err(err),
-                        }
-                    }
-                    _ => Err(Error::from(js_sys::ReferenceError::new(&format!(
-                        "ReferenceError: Property {:?} could not be found.",
-                        memexpr.prop
-                    )))),
-                }
+    let obj = evaluator::expressions::eval_expr(*memexpr.obj, envs).await?;
+    match memexpr.prop {
+        MemberProp::Ident(ident) => {
+            match Reflect::get(obj.borrow().as_ref(), &JsValue::from(ident.sym.to_string()))
+                .map_err(|x| Error::from(x))
+            {
+                Ok(js) => Ok(Value::from(js).into()),
+                Err(err) => Err(err),
+            }
+        }
+        MemberProp::Computed(computed) => {
+            let prop = evaluator::expressions::eval_expr(*computed.expr, envs).await?;
+            let prop = prop.borrow();
+            match Reflect::get(obj.borrow().as_ref(), prop.as_ref()).map_err(|x| Error::from(x)) {
+                Ok(js) => Ok(Value::from(js).into()),
+                Err(err) => Err(err),
             }
         }
         _ => Err(Error::new(&format!(
-            "ERROR: Member expression {:?} could not be evaluated.",
-            memexpr
+            "ERROR: Private member expression could not be evaluated."
         ))),
     }
 }
@@ -297,40 +283,30 @@ pub async fn assign_member_expr(
     rhsexpr: RcValue,
     envs: &mut Environments,
 ) -> Result<RcValue, Error> {
-    match memexpr.obj {
-        ExprOrSuper::Expr(expr) => {
-            let obj = evaluator::expressions::eval_expr(*expr, envs).await?;
-            if memexpr.computed {
-                let prop = evaluator::expressions::eval_expr(*memexpr.prop, envs).await?;
-                let prop = prop.borrow();
-                Reflect::set(
-                    &JsValue::from(obj.borrow().as_ref()),
-                    &prop.as_ref(),
-                    (rhsexpr.borrow()).as_ref(),
-                )
-                .map_err(|x| Error::from(x))?;
-                Ok(rhsexpr)
-            } else {
-                match *memexpr.prop {
-                    Expr::Ident(ident) => {
-                        Reflect::set(
-                            &JsValue::from(obj.borrow().as_ref()),
-                            &JsValue::from(ident.sym.to_string()),
-                            (rhsexpr.borrow()).as_ref(),
-                        )
-                        .map_err(|x| Error::from(x))?;
-                        Ok(rhsexpr)
-                    }
-                    _ => Err(Error::from(js_sys::ReferenceError::new(&format!(
-                        "ReferenceError: Property {:?} could not be found.",
-                        memexpr.prop
-                    )))),
-                }
-            }
+    let obj = evaluator::expressions::eval_expr(*memexpr.obj, envs).await?;
+    match memexpr.prop {
+        MemberProp::Ident(ident) => {
+            Reflect::set(
+                &JsValue::from(obj.borrow().as_ref()),
+                &JsValue::from(ident.sym.to_string()),
+                (rhsexpr.borrow()).as_ref(),
+            )
+            .map_err(|x| Error::from(x))?;
+            Ok(rhsexpr)
+        }
+        MemberProp::Computed(computed) => {
+            let prop = evaluator::expressions::eval_expr(*computed.expr, envs).await?;
+            let prop = prop.borrow();
+            Reflect::set(
+                &JsValue::from(obj.borrow().as_ref()),
+                &prop.as_ref(),
+                (rhsexpr.borrow()).as_ref(),
+            )
+            .map_err(|x| Error::from(x))?;
+            Ok(rhsexpr)
         }
         _ => Err(Error::new(&format!(
-            "ERROR: Member expression {:?} could not be evaluated.",
-            memexpr
+            "ERROR: Private member expression could not be evaluated."
         ))),
     }
 }
