@@ -88,8 +88,11 @@ async fn eval_module_decl(moddecl: ModuleDecl, envs: &mut Environments) -> Resul
                                 &specifier
                                     .imported
                                     .clone()
-                                    .unwrap_or(specifier.local.clone())
-                                    .sym,
+                                    .map(|x| match x {
+                                        ModuleExportName::Ident(ident) => ident.sym,
+                                        ModuleExportName::Str(str) => str.value,
+                                    })
+                                    .unwrap_or(specifier.local.clone().sym),
                             ),
                         )?;
                         envs.insert(
