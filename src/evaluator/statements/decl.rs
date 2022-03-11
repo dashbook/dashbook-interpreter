@@ -47,15 +47,14 @@ pub(crate) async fn eval_decl(decl: Decl, envs: &mut Environments) -> Result<RcV
             let constructor = match classdecl
                 .class
                 .body
-                .clone()
-                .into_iter()
-                .find(|x| match x {
+                .iter()
+                .find(|x| match *x {
                     ClassMember::Constructor(_) => true,
                     _ => false,
                 })
                 .ok_or(Error::new("Class definition has no constructor."))?
             {
-                ClassMember::Constructor(constructor) => Ok(constructor),
+                ClassMember::Constructor(constructor) => Ok(constructor.clone()),
                 _ => Err(Error::new("Class definition has no constructor.")),
             }?;
             let (prototype, envs) = stream::iter(classdecl.class.body)
