@@ -8,7 +8,7 @@ use wasm_bindgen::prelude::*;
 
 #[derive(Clone, Debug, Default)]
 pub struct Environments {
-    stack: Vec<HashMap<String, Rc<RefCell<Value>>>>,
+    pub stack: Vec<HashMap<String, Rc<RefCell<Value>>>>,
 }
 
 impl Environments {

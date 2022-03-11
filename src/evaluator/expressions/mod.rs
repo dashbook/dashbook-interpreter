@@ -8,7 +8,7 @@ use js_sys::Error;
 use wasm_bindgen_futures::JsFuture;
 
 mod binary;
-mod unary;
+pub mod unary;
 
 pub(crate) fn eval_expr<'a>(
     expr: Expr,

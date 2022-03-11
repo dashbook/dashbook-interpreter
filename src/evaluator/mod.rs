@@ -12,7 +12,7 @@ use swc_common::{BytePos, Span, SyntaxContext};
 use swc_ecma_ast::*;
 use wasm_bindgen::prelude::*;
 
-mod expressions;
+pub mod expressions;
 pub mod functions;
 mod objects;
 mod statements;

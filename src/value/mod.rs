@@ -168,6 +168,23 @@ impl From<&Value> for JsValue {
     }
 }
 
+impl From<Value> for JsValue {
+    fn from(input: Value) -> JsValue {
+        match input {
+            Value::Number(x) => JsValue::from(x),
+            Value::Bool(x) => JsValue::from(x),
+            Value::Null(_) => JsValue::null(),
+            Value::Undefined(_) => JsValue::undefined(),
+            Value::String(x) => JsValue::from(x),
+            Value::Object(x) => JsValue::from(x),
+            Value::Function(x) => JsValue::from(&x.jsfunction),
+            Value::JsFunction(x) => JsValue::from(x),
+            Value::Symbol(x) => JsValue::from(x),
+            Value::BigInt(x) => JsValue::from(x),
+        }
+    }
+}
+
 impl AsRef<JsValue> for Value {
     fn as_ref(&self) -> &JsValue {
         match self {
