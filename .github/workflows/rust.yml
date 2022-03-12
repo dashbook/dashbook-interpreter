@@ -16,4 +16,4 @@ jobs:
       
     - name: Install
       run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
-    - run: export WASM_BINDGEN_TEST_TIMEOUT=600; wasm-pack test --headless --firefox . -- success
+    - run: export WASM_BINDGEN_TEST_TIMEOUT=1200; wasm-pack test --headless --firefox . -- success
