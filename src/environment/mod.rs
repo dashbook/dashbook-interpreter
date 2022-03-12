@@ -35,6 +35,7 @@ impl Environments {
     }
 }
 
+#[inline]
 fn create_global_proxy(global: &js_sys::Object) -> js_sys::Proxy {
     let handler = js_sys::Object::new();
     let set =
@@ -145,6 +146,7 @@ fn create_global_proxy(global: &js_sys::Object) -> js_sys::Proxy {
     js_sys::Proxy::new(global, &handler)
 }
 
+#[inline]
 fn create_document_proxy(global: &js_sys::Object) -> Result<js_sys::Proxy, Error> {
     let document =
         js_sys::Reflect::get(global, &JsValue::from_str("document")).map_err(|x| Error::from(x))?;

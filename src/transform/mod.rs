@@ -13,6 +13,7 @@ use swc_common::{BytePos, Span, SyntaxContext};
 use swc_ecma_ast::*;
 use swc_ecma_visit::{noop_fold_type, Fold, FoldWith};
 
+#[inline]
 pub fn emit_js(body: Vec<Stmt>) -> Result<String, Error> {
     let script = Script {
         span: Span::new(BytePos(0), BytePos(0), SyntaxContext::empty()),

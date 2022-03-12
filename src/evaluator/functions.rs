@@ -283,6 +283,7 @@ pub fn new_jsfunction(
     }
 }
 
+#[inline]
 fn get_variable_names(input: &str) -> Option<Vec<String>> {
     let re = Regex::new(r"weblab_[a-zA-Z_$][0-9a-zA-Z_$]*").ok()?;
     re.captures_iter(input)
@@ -295,6 +296,7 @@ fn get_variable_names(input: &str) -> Option<Vec<String>> {
         })
 }
 
+#[inline]
 fn in_global_this(input: &str) -> bool {
     if input == "fetch"
         || input == "console"

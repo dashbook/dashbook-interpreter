@@ -5,6 +5,7 @@ use swc_ecma_ast::*;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 
+#[inline]
 pub(crate) fn eval_binary_expression(
     opr: BinaryOp,
     left: &Value,
@@ -39,6 +40,7 @@ pub(crate) fn eval_binary_expression(
     }
 }
 
+#[inline]
 pub(crate) fn eval_plus_operator(left: &Value, right: &Value) -> Result<Value, Error> {
     match (left, right) {
         (Value::Number(x), Value::Number(y)) => {
@@ -68,6 +70,7 @@ pub(crate) fn eval_plus_operator(left: &Value, right: &Value) -> Result<Value, E
     }
 }
 
+#[inline]
 pub(crate) fn eval_minus_operator(left: &Value, right: &Value) -> Result<Value, Error> {
     match (left, right) {
         (Value::Number(x), Value::Number(y)) => {
@@ -94,6 +97,7 @@ pub(crate) fn eval_minus_operator(left: &Value, right: &Value) -> Result<Value, 
     }
 }
 
+#[inline]
 pub(crate) fn eval_multiplication_operator(left: &Value, right: &Value) -> Result<Value, Error> {
     match (left, right) {
         (Value::Number(x), Value::Number(y)) => {
@@ -120,6 +124,7 @@ pub(crate) fn eval_multiplication_operator(left: &Value, right: &Value) -> Resul
     }
 }
 
+#[inline]
 pub(crate) fn eval_division_operator(left: &Value, right: &Value) -> Result<Value, Error> {
     match (left, right) {
         (Value::Number(x), Value::Number(y)) => {
@@ -146,6 +151,7 @@ pub(crate) fn eval_division_operator(left: &Value, right: &Value) -> Result<Valu
     }
 }
 
+#[inline]
 pub(crate) fn eval_mod_operator(left: &Value, right: &Value) -> Result<Value, Error> {
     match (left, right) {
         (Value::Number(x), Value::Number(y)) => {
@@ -169,6 +175,7 @@ pub(crate) fn eval_mod_operator(left: &Value, right: &Value) -> Result<Value, Er
     }
 }
 
+#[inline]
 pub(crate) fn eval_power_operator(left: &Value, right: &Value) -> Result<Value, Error> {
     match (left, right) {
         (Value::Number(x), Value::Number(y)) => Ok(Value::Number(JsNumber::from(
@@ -181,6 +188,7 @@ pub(crate) fn eval_power_operator(left: &Value, right: &Value) -> Result<Value, 
     }
 }
 
+#[inline]
 pub(crate) fn eval_greater_than_operator(left: &Value, right: &Value) -> Result<Value, Error> {
     match (left, right) {
         (Value::Number(x), Value::Number(y)) => {
@@ -193,6 +201,7 @@ pub(crate) fn eval_greater_than_operator(left: &Value, right: &Value) -> Result<
     }
 }
 
+#[inline]
 pub(crate) fn eval_greater_than_equal_operator(
     left: &Value,
     right: &Value,
@@ -208,6 +217,7 @@ pub(crate) fn eval_greater_than_equal_operator(
     }
 }
 
+#[inline]
 pub(crate) fn eval_less_than_operator(left: &Value, right: &Value) -> Result<Value, Error> {
     match (left, right) {
         (Value::Number(x), Value::Number(y)) => {
@@ -220,6 +230,7 @@ pub(crate) fn eval_less_than_operator(left: &Value, right: &Value) -> Result<Val
     }
 }
 
+#[inline]
 pub(crate) fn eval_less_than_equal_operator(left: &Value, right: &Value) -> Result<Value, Error> {
     match (left, right) {
         (Value::Number(x), Value::Number(y)) => {
@@ -232,6 +243,7 @@ pub(crate) fn eval_less_than_equal_operator(left: &Value, right: &Value) -> Resu
     }
 }
 
+#[inline]
 pub(crate) fn eval_equal_operator(left: &Value, right: &Value) -> Result<Value, Error> {
     match (left, right) {
         (Value::Number(x), Value::Number(y)) => {
@@ -290,6 +302,7 @@ pub(crate) fn eval_equal_operator(left: &Value, right: &Value) -> Result<Value, 
     }
 }
 
+#[inline]
 pub(crate) fn eval_not_equal_operator(left: &Value, right: &Value) -> Result<Value, Error> {
     match (left, right) {
         (Value::Number(x), Value::Number(y)) => {
@@ -348,6 +361,7 @@ pub(crate) fn eval_not_equal_operator(left: &Value, right: &Value) -> Result<Val
     }
 }
 
+#[inline]
 pub(crate) fn eval_equal_equal_operator(left: &Value, right: &Value) -> Result<Value, Error> {
     match (left, right) {
         (Value::Number(x), Value::Number(y)) => {
@@ -377,6 +391,7 @@ pub(crate) fn eval_equal_equal_operator(left: &Value, right: &Value) -> Result<V
     }
 }
 
+#[inline]
 pub(crate) fn eval_not_equal_equal_operator(left: &Value, right: &Value) -> Result<Value, Error> {
     match (left, right) {
         (Value::Number(x), Value::Number(y)) => {
@@ -406,6 +421,7 @@ pub(crate) fn eval_not_equal_equal_operator(left: &Value, right: &Value) -> Resu
     }
 }
 
+#[inline]
 pub(crate) fn eval_and_operator(left: &Value, right: &Value) -> Result<Value, Error> {
     match (left, right) {
         (Value::Bool(x), Value::Bool(y)) => {
@@ -418,6 +434,7 @@ pub(crate) fn eval_and_operator(left: &Value, right: &Value) -> Result<Value, Er
     }
 }
 
+#[inline]
 pub(crate) fn eval_or_operator(left: &Value, right: &Value) -> Result<Value, Error> {
     match (left, right) {
         (Value::Bool(x), Value::Bool(y)) => {
@@ -453,6 +470,7 @@ pub(crate) fn eval_or_operator(left: &Value, right: &Value) -> Result<Value, Err
     }
 }
 
+#[inline]
 pub(crate) fn left_shift_operator(left: &Value, right: &Value) -> Result<Value, Error> {
     match (left, right) {
         (Value::Number(x), Value::Number(y)) => Ok(Value::Number(JsNumber::from(
@@ -465,6 +483,7 @@ pub(crate) fn left_shift_operator(left: &Value, right: &Value) -> Result<Value, 
     }
 }
 
+#[inline]
 pub(crate) fn right_shift_operator(left: &Value, right: &Value) -> Result<Value, Error> {
     match (left, right) {
         (Value::Number(x), Value::Number(y)) => Ok(Value::Number(JsNumber::from(
@@ -477,6 +496,7 @@ pub(crate) fn right_shift_operator(left: &Value, right: &Value) -> Result<Value,
     }
 }
 
+#[inline]
 pub(crate) fn zero_right_shift_operator(left: &Value, right: &Value) -> Result<Value, Error> {
     match (left, right) {
         (Value::Number(x), Value::Number(y)) => Ok(Value::Number(JsNumber::from(
@@ -489,6 +509,7 @@ pub(crate) fn zero_right_shift_operator(left: &Value, right: &Value) -> Result<V
     }
 }
 
+#[inline]
 pub(crate) fn bitwise_and_operator(left: &Value, right: &Value) -> Result<Value, Error> {
     match (left, right) {
         (Value::Number(x), Value::Number(y)) => Ok(Value::Number(JsNumber::from(
@@ -501,6 +522,7 @@ pub(crate) fn bitwise_and_operator(left: &Value, right: &Value) -> Result<Value,
     }
 }
 
+#[inline]
 pub(crate) fn bitwise_or_operator(left: &Value, right: &Value) -> Result<Value, Error> {
     match (left, right) {
         (Value::Number(x), Value::Number(y)) => Ok(Value::Number(JsNumber::from(
@@ -513,6 +535,7 @@ pub(crate) fn bitwise_or_operator(left: &Value, right: &Value) -> Result<Value, 
     }
 }
 
+#[inline]
 pub(crate) fn bitwise_xor_operator(left: &Value, right: &Value) -> Result<Value, Error> {
     match (left, right) {
         (Value::Number(x), Value::Number(y)) => Ok(Value::Number(JsNumber::from(
@@ -525,6 +548,7 @@ pub(crate) fn bitwise_xor_operator(left: &Value, right: &Value) -> Result<Value,
     }
 }
 
+#[inline]
 pub(crate) fn in_operator(left: &Value, right: &Value) -> Result<Value, Error> {
     match (left, right) {
         (Value::Object(x), y) => Ok(Value::Bool(JsBool::from(
@@ -538,6 +562,7 @@ pub(crate) fn in_operator(left: &Value, right: &Value) -> Result<Value, Error> {
     }
 }
 
+#[inline]
 pub(crate) fn instanceof_operator(left: &Value, right: &Value) -> Result<Value, Error> {
     match (left, right) {
         (x, Value::Bool(_)) => Ok(Value::Bool(JsBool::from(
@@ -562,6 +587,7 @@ pub(crate) fn instanceof_operator(left: &Value, right: &Value) -> Result<Value, 
     }
 }
 
+#[inline]
 pub(crate) fn nullish_coalescing_operator(left: &Value, right: &Value) -> Result<Value, Error> {
     match (left, right) {
         (Value::Null(_), y) => Ok(y.clone()),

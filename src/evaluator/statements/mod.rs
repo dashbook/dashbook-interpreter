@@ -341,6 +341,7 @@ enum LoopBlock {
     Normal(RcValue),
 }
 
+#[inline]
 async fn eval_block<'env>(stmts: Vec<Stmt>, envs: &mut Environments) -> Result<LoopBlock, Error> {
     stream::iter(stmts)
         .fold(
@@ -365,6 +366,7 @@ async fn eval_block<'env>(stmts: Vec<Stmt>, envs: &mut Environments) -> Result<L
         .map(|x| x.0)
 }
 
+#[inline]
 async fn eval_if_stmt(ifstmt: IfStmt, envs: &mut Environments) -> Result<RcValue, Error> {
     let test = JsBool::from(JsValue::from(
         &expressions::eval_expr(*ifstmt.test, envs).await?.borrow() as &Value,

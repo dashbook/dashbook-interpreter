@@ -10,6 +10,7 @@ use wasm_bindgen::prelude::*;
 
 use super::expressions::eval_expr;
 
+#[inline]
 pub async fn eval_obj_lit_expr(
     objlit: ObjectLit,
     envs: &mut Environments,
@@ -250,6 +251,7 @@ pub(crate) async fn get_prop_name(
     }
 }
 
+#[inline]
 pub async fn eval_member_expr(
     memexpr: MemberExpr,
     envs: &mut Environments,
@@ -278,6 +280,7 @@ pub async fn eval_member_expr(
     }
 }
 
+#[inline]
 pub async fn assign_member_expr(
     memexpr: MemberExpr,
     rhsexpr: RcValue,
@@ -311,6 +314,7 @@ pub async fn assign_member_expr(
     }
 }
 
+#[inline]
 pub async fn eval_new_expr(newexpr: NewExpr, envs: &mut Environments) -> Result<RcValue, Error> {
     let function = evaluator::expressions::eval_expr(*newexpr.callee, envs).await?;
     let (args, _envs) = match newexpr.args {

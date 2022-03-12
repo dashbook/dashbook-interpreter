@@ -1,10 +1,11 @@
-use crate::{environment::Environments, evaluator::expressions::eval_expr};
+use crate::{environment::Environments};
 use crate::evaluator::*;
 
 use futures::future::{FutureExt, LocalBoxFuture};
 
 use js_sys::Error;
 
+#[inline]
 pub(crate) async fn eval_decl(decl: Decl, envs: &mut Environments) -> Result<RcValue, Error> {
     match decl {
         Decl::Var(decl) => match decl.kind {
@@ -44,103 +45,8 @@ pub(crate) async fn eval_decl(decl: Decl, envs: &mut Environments) -> Result<RcV
         }
         Decl::Class(classdecl) => {
             let ident = classdecl.ident;
-            let constructor = match classdecl
-                .class
-                .body
-                .iter()
-                .find(|x| match *x {
-                    ClassMember::Constructor(_) => true,
-                    _ => false,
-                })
-                .ok_or(Error::new("Class definition has no constructor."))?
-            {
-                ClassMember::Constructor(constructor) => Ok(constructor.clone()),
-                _ => Err(Error::new("Class definition has no constructor.")),
-            }?;
-            let prototype = match classdecl.class.super_class {
-                Some(super_class) => match &*eval_expr(*super_class, envs).await?.borrow(){
-                    Value::JsFunction(proto) => {
-                        let obj = js_sys::Object::new();
-                        Ok(js_sys::Object::set_prototype_of(&obj, &js_sys::Object::from(js_sys::Reflect::get(proto, &JsValue::from_str(&"prototype"))?)))
-                    },
-                    _ => Err(js_sys::Error::from(js_sys::TypeError::new("")))
-                },
-                None => Ok(js_sys::Object::new())
-            }?;
-            let (prototype, envs) = stream::iter(classdecl.class.body)
-                .fold(
-                    Ok((prototype, envs)),
-                    |acc: Result<(js_sys::Object, &mut Environments), Error>, x| async move {
-                        let (obj, envs) = acc?;
-                        match x {
-                            ClassMember::Method(method) => {
-                                let body = method
-                                    .function
-                                    .body
-                                    .ok_or(Error::new(&format!(
-                                        "ERROR: Function body of method property invalid."
-                                    )))?
-                                    .stmts;
-                                let (args, env, envs) = functions::args_to_string(method.function.params.into_iter().map(|x| x.pat).collect(), envs).await?;
-                                let function = functions::new_jsfunction(&args, &body, &env)?;
-                                js_sys::Reflect::set(
-                                    obj.as_ref(),
-                                    &JsValue::from_str(&match method.key {
-                                        PropName::Ident(ident) => Ok(ident.sym),
-                                        _ => Err(Error::new(&format!(
-                                            "PropName {:?} not allowed for method.",
-                                            method.key
-                                        ))),
-                                    }?),
-                                    &function,
-                                )?;
-                                Ok((obj, envs))
-                            }
-                            _ => Ok((obj, envs)),
-                        }
-                    },
-                )
-                .await?;
-            let body = match constructor.body {
-                Some(body) => body.stmts,
-                None => Vec::new(),
-            };
-            let (args, env, envs) = functions::args_to_string(constructor
-                .params
-                .into_iter()
-                .map(|x| match x {
-                    ParamOrTsParamProp::Param(param) => Ok(param.pat),
-                    _ => Err(Error::new(&format!("Parameters {:?} not supported.", x))),
-                })
-                .collect::<Result<Vec<_>, _>>()?, envs).await?;
-            let function = functions::new_jsfunction(&args, &body, &env)?;
-            js_sys::Object::define_property(
-                &prototype,
-                &JsValue::from_str("constructor"),
-                &objects::create_object_from_entries(vec![
-                    (JsValue::from_str("configurable"), &JsValue::from_bool(false)),
-                    (JsValue::from_str("enumerable"), &JsValue::from_bool(false)),
-                    (JsValue::from_str("writable"), &JsValue::from_bool(false)),
-                    (
-                        JsValue::from_str("value"),
-                        &function,
-                    ),
-                ])?,
-            );
-            js_sys::Object::define_property(
-                &function,
-                &JsValue::from_str("prototype"),
-                &objects::create_object_from_entries(vec![
-                    (JsValue::from_str("configurable"), &JsValue::from_bool(false)),
-                    (JsValue::from_str("enumerable"), &JsValue::from_bool(false)),
-                    (JsValue::from_str("writable"), &JsValue::from_bool(false)),
-                    (
-                        JsValue::from_str("value"),
-                        &prototype,
-                    ),
-                ])?,
-            );
-            envs.insert(&ident.sym, Value::JsFunction(function).into())?;
+            let class = class::eval_class(classdecl.class, envs).await?;
+            envs.insert(&ident.sym, Value::JsFunction(class).into())?;
             Ok(Value::Undefined(JsValue::undefined()).into())
         }
         _ => Err(Error::new(&format!(
