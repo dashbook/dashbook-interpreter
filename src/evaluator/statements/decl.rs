@@ -1,4 +1,4 @@
-use crate::environment::Environments;
+use crate::{environment::Environments, evaluator::expressions::eval_expr};
 use crate::evaluator::*;
 
 use futures::future::{FutureExt, LocalBoxFuture};
@@ -57,9 +57,19 @@ pub(crate) async fn eval_decl(decl: Decl, envs: &mut Environments) -> Result<RcV
                 ClassMember::Constructor(constructor) => Ok(constructor.clone()),
                 _ => Err(Error::new("Class definition has no constructor.")),
             }?;
+            let prototype = match classdecl.class.super_class {
+                Some(super_class) => match &*eval_expr(*super_class, envs).await?.borrow(){
+                    Value::JsFunction(proto) => {
+                        let obj = js_sys::Object::new();
+                        Ok(js_sys::Object::set_prototype_of(&obj, &js_sys::Object::from(js_sys::Reflect::get(proto, &JsValue::from_str(&"prototype"))?)))
+                    },
+                    _ => Err(js_sys::Error::from(js_sys::TypeError::new("")))
+                },
+                None => Ok(js_sys::Object::new())
+            }?;
             let (prototype, envs) = stream::iter(classdecl.class.body)
                 .fold(
-                    Ok((js_sys::Object::new(), envs)),
+                    Ok((prototype, envs)),
                     |acc: Result<(js_sys::Object, &mut Environments), Error>, x| async move {
                         let (obj, envs) = acc?;
                         match x {
