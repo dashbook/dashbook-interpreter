@@ -83,22 +83,41 @@ pub(crate) async fn eval_class(
                         )
                         .await?;
                         let function = functions::new_jsfunction(&args, &body, &env)?;
-                        js_sys::Object::define_property(
-                            obj.as_ref(),
-                            objects::get_prop_name(method.key, envs)
-                                .await?
-                                .borrow()
-                                .as_ref(),
-                            &objects::create_object_from_entries(vec![
-                                (
-                                    JsValue::from_str("configurable"),
-                                    &JsValue::from_bool(false),
-                                ),
-                                (JsValue::from_str("enumerable"), &JsValue::from_bool(true)),
-                                (JsValue::from_str("writable"), &JsValue::from_bool(true)),
-                                (JsValue::from_str("value"), &function),
-                            ])?,
-                        );
+                        if method.is_static {
+                            js_sys::Object::define_property(
+                                func.as_ref(),
+                                objects::get_prop_name(method.key, envs)
+                                    .await?
+                                    .borrow()
+                                    .as_ref(),
+                                &objects::create_object_from_entries(vec![
+                                    (
+                                        JsValue::from_str("configurable"),
+                                        &JsValue::from_bool(false),
+                                    ),
+                                    (JsValue::from_str("enumerable"), &JsValue::from_bool(true)),
+                                    (JsValue::from_str("writable"), &JsValue::from_bool(true)),
+                                    (JsValue::from_str("value"), &function),
+                                ])?,
+                            );
+                        } else {
+                            js_sys::Object::define_property(
+                                obj.as_ref(),
+                                objects::get_prop_name(method.key, envs)
+                                    .await?
+                                    .borrow()
+                                    .as_ref(),
+                                &objects::create_object_from_entries(vec![
+                                    (
+                                        JsValue::from_str("configurable"),
+                                        &JsValue::from_bool(false),
+                                    ),
+                                    (JsValue::from_str("enumerable"), &JsValue::from_bool(true)),
+                                    (JsValue::from_str("writable"), &JsValue::from_bool(true)),
+                                    (JsValue::from_str("value"), &function),
+                                ])?,
+                            );
+                        }
                         Ok((func, obj, envs))
                     }
                     ClassMember::ClassProp(prop) => {
@@ -106,22 +125,42 @@ pub(crate) async fn eval_class(
                             Some(prop) => eval_expr(*prop, envs).await?,
                             None => Value::Undefined(JsValue::undefined()).into(),
                         };
-                        js_sys::Object::define_property(
-                            obj.as_ref(),
-                            objects::get_prop_name(prop.key, envs)
-                                .await?
-                                .borrow()
-                                .as_ref(),
-                            &objects::create_object_from_entries(vec![
-                                (
-                                    JsValue::from_str("configurable"),
-                                    &JsValue::from_bool(false),
-                                ),
-                                (JsValue::from_str("enumerable"), &JsValue::from_bool(true)),
-                                (JsValue::from_str("writable"), &JsValue::from_bool(true)),
-                                (JsValue::from_str("value"), &value.borrow().as_ref()),
-                            ])?,
-                        );
+                        if prop.is_static {
+                            js_sys::Object::define_property(
+                                func.as_ref(),
+                                objects::get_prop_name(prop.key, envs)
+                                    .await?
+                                    .borrow()
+                                    .as_ref(),
+                                &objects::create_object_from_entries(vec![
+                                    (
+                                        JsValue::from_str("configurable"),
+                                        &JsValue::from_bool(false),
+                                    ),
+                                    (JsValue::from_str("enumerable"), &JsValue::from_bool(true)),
+                                    (JsValue::from_str("writable"), &JsValue::from_bool(true)),
+                                    (JsValue::from_str("value"), &value.borrow().as_ref()),
+                                ])?,
+                            );
+                        } else {
+                            js_sys::Object::define_property(
+                                obj.as_ref(),
+                                objects::get_prop_name(prop.key, envs)
+                                    .await?
+                                    .borrow()
+                                    .as_ref(),
+                                &objects::create_object_from_entries(vec![
+                                    (
+                                        JsValue::from_str("configurable"),
+                                        &JsValue::from_bool(false),
+                                    ),
+                                    (JsValue::from_str("enumerable"), &JsValue::from_bool(true)),
+                                    (JsValue::from_str("writable"), &JsValue::from_bool(true)),
+                                    (JsValue::from_str("value"), &value.borrow().as_ref()),
+                                ])?,
+                            );
+                        }
+                        
                         Ok((func, obj, envs))
                     }
                     _ => Ok((func, obj, envs)),
