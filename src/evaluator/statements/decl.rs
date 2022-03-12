@@ -71,6 +71,8 @@ pub(crate) async fn eval_decl(decl: Decl, envs: &mut Environments) -> Result<RcV
                                         "ERROR: Function body of method property invalid."
                                     )))?
                                     .stmts;
+                                let (args, env, envs) = functions::args_to_string(method.function.params.into_iter().map(|x| x.pat).collect(), envs).await?;
+                                let function = functions::new_jsfunction(&args, &body, &env)?;
                                 js_sys::Reflect::set(
                                     obj.as_ref(),
                                     &JsValue::from_str(&match method.key {
@@ -80,15 +82,7 @@ pub(crate) async fn eval_decl(decl: Decl, envs: &mut Environments) -> Result<RcV
                                             method.key
                                         ))),
                                     }?),
-                                    functions::function_declaration(
-                                        method.function.params.into_iter().map(|x| x.pat).collect(),
-                                        body,
-                                        false,
-                                        envs,
-                                        None,
-                                    )
-                                    .await?
-                                    .as_ref(),
+                                    &function,
                                 )?;
                                 Ok((obj, envs))
                             }
@@ -97,33 +91,46 @@ pub(crate) async fn eval_decl(decl: Decl, envs: &mut Environments) -> Result<RcV
                     },
                 )
                 .await?;
-            let mut body = match constructor.body {
+            let body = match constructor.body {
                 Some(body) => body.stmts,
                 None => Vec::new(),
             };
-            body.push(Stmt::Expr(ExprStmt {
-                span: Span::new(BytePos(0), BytePos(0), SyntaxContext::empty()),
-                expr: Box::new(Expr::This(ThisExpr {
-                    span: Span::new(BytePos(0), BytePos(0), SyntaxContext::empty()),
-                })),
-            }));
-            let function = functions::function_declaration(
-                constructor
-                    .params
-                    .into_iter()
-                    .map(|x| match x {
-                        ParamOrTsParamProp::Param(param) => Ok(param.pat),
-                        _ => Err(Error::new(&format!("Parameters {:?} not supported.", x))),
-                    })
-                    .collect::<Result<Vec<_>, _>>()?,
-                body,
-                false,
-                envs,
-                Some(prototype),
-            )
-            .await
-            .map(|x| x.into())?;
-            envs.insert(&ident.sym, function)?;
+            let (args, env, envs) = functions::args_to_string(constructor
+                .params
+                .into_iter()
+                .map(|x| match x {
+                    ParamOrTsParamProp::Param(param) => Ok(param.pat),
+                    _ => Err(Error::new(&format!("Parameters {:?} not supported.", x))),
+                })
+                .collect::<Result<Vec<_>, _>>()?, envs).await?;
+            let function = functions::new_jsfunction(&args, &body, &env)?;
+            js_sys::Object::define_property(
+                &prototype,
+                &JsValue::from_str("constructor"),
+                &objects::create_object_from_entries(vec![
+                    (JsValue::from_str("configurable"), &JsValue::from_bool(false)),
+                    (JsValue::from_str("enumerable"), &JsValue::from_bool(false)),
+                    (JsValue::from_str("writable"), &JsValue::from_bool(false)),
+                    (
+                        JsValue::from_str("value"),
+                        &function,
+                    ),
+                ])?,
+            );
+            js_sys::Object::define_property(
+                &function,
+                &JsValue::from_str("prototype"),
+                &objects::create_object_from_entries(vec![
+                    (JsValue::from_str("configurable"), &JsValue::from_bool(false)),
+                    (JsValue::from_str("enumerable"), &JsValue::from_bool(false)),
+                    (JsValue::from_str("writable"), &JsValue::from_bool(false)),
+                    (
+                        JsValue::from_str("value"),
+                        &prototype,
+                    ),
+                ])?,
+            );
+            envs.insert(&ident.sym, Value::JsFunction(function).into())?;
             Ok(Value::Undefined(JsValue::undefined()).into())
         }
         _ => Err(Error::new(&format!(

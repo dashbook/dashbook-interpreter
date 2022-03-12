@@ -8,7 +8,6 @@ use futures::stream::{self, StreamExt};
 use js_sys::Error;
 use std::cell::RefCell;
 use std::rc::Rc;
-use swc_common::{BytePos, Span, SyntaxContext};
 use swc_ecma_ast::*;
 use wasm_bindgen::prelude::*;
 
