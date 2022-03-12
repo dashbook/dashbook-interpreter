@@ -281,6 +281,27 @@ pub async fn eval_member_expr(
                 "ERROR: Private member expression could not be evaluated."
             ))),
         },
+        Value::JsFunction(obj) => match memexpr.prop {
+            MemberProp::Ident(ident) => {
+                match Reflect::get(obj.as_ref(), &JsValue::from(ident.sym.to_string()))
+                    .map_err(|x| Error::from(x))
+                {
+                    Ok(js) => Ok(Value::from(js).into()),
+                    Err(err) => Err(err),
+                }
+            }
+            MemberProp::Computed(computed) => {
+                let prop = evaluator::expressions::eval_expr(*computed.expr, envs).await?;
+                let prop = prop.borrow();
+                match Reflect::get(obj.as_ref(), prop.as_ref()).map_err(|x| Error::from(x)) {
+                    Ok(js) => Ok(Value::from(js).into()),
+                    Err(err) => Err(err),
+                }
+            }
+            _ => Err(Error::new(&format!(
+                "ERROR: Private member expression could not be evaluated."
+            ))),
+        },
         Value::Undefined(_) => match *memexpr.obj {
             Expr::Ident(ident) => Err(js_sys::ReferenceError::new(&format!(
                 "ERROR: {} is not defined.",
