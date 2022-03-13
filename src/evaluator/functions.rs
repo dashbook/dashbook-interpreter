@@ -19,7 +19,23 @@ pub async fn function_declaration(
     envs: &mut Environments,
     prototype: Option<js_sys::Object>,
 ) -> Result<Value, Error> {
-    let (args, env, _envs) = stream::iter(args)
+    let (args, env, _envs) = args_to_string(args, envs).await?;
+    let js_func = if is_async {
+        JsValue::undefined()
+    } else {
+        JsValue::from(new_jsfunction(&args, &body, &env)?)
+    };
+    Ok(Value::Function(Function::new(
+        args, body, env, is_async, js_func, prototype,
+    )))
+}
+
+#[inline]
+pub async fn args_to_string(
+    args: Vec<Pat>,
+    envs: &mut Environments,
+) -> Result<(Vec<String>, ClosedEnvironment, &mut Environments), Error> {
+    stream::iter(args)
         .fold(
             Ok((Vec::new(), envs.closure(), envs)),
             |acc: Result<(Vec<_>, ClosedEnvironment, &mut Environments), Error>, x| async move {
@@ -28,17 +44,10 @@ pub async fn function_declaration(
                 Ok((args, env, envs))
             },
         )
-        .await?;
-    let js_func = if is_async {
-        JsValue::undefined()
-    } else {
-        new_jsfunction(&args, &body, &env)?
-    };
-    Ok(Value::Function(Function::new(
-        args, body, env, is_async, js_func, prototype,
-    )))
+        .await
 }
 
+#[inline]
 fn pat_to_string<'a>(
     pat: Pat,
     env: &'a mut ClosedEnvironment,
@@ -76,6 +85,7 @@ fn pat_to_string<'a>(
     .boxed_local()
 }
 
+#[inline]
 pub fn arrow_func_body(arrow_body: BlockStmtOrExpr) -> Vec<Stmt> {
     match arrow_body {
         BlockStmtOrExpr::BlockStmt(block) => block.stmts,
@@ -210,7 +220,7 @@ pub fn new_jsfunction(
     args: &Vec<String>,
     body: &Vec<Stmt>,
     env: &ClosedEnvironment,
-) -> Result<JsValue, JsValue> {
+) -> Result<js_sys::Function, JsValue> {
     let mut func_body = body.clone();
     func_body.pop().map(|x| {
         let ret = if let Stmt::Expr(expr) = x {
@@ -265,16 +275,15 @@ pub fn new_jsfunction(
     });
     new_args.pop();
     match values {
-        Some(arr) => Ok(JsValue::from(arr.iter().fold(
+        Some(arr) => Ok(arr.iter().fold(
             js_sys::Function::new_with_args(&new_args, &body),
             |acc, x| acc.bind1(&JsValue::null(), x.borrow().as_ref()),
-        ))),
-        None => Ok(JsValue::from(js_sys::Function::new_with_args(
-            &new_args, &body,
-        ))),
+        )),
+        None => Ok(js_sys::Function::new_with_args(&new_args, &body)),
     }
 }
 
+#[inline]
 fn get_variable_names(input: &str) -> Option<Vec<String>> {
     let re = Regex::new(r"weblab_[a-zA-Z_$][0-9a-zA-Z_$]*").ok()?;
     re.captures_iter(input)
@@ -287,6 +296,7 @@ fn get_variable_names(input: &str) -> Option<Vec<String>> {
         })
 }
 
+#[inline]
 fn in_global_this(input: &str) -> bool {
     if input == "fetch"
         || input == "console"

@@ -119,7 +119,7 @@ pub async fn eval_cell(input: String) -> Result<JsValue, JsValue> {
 pub fn list_properties(object: &str) -> js_sys::Object {
     let mut properties = None;
     ENVS.with(|f| {
-        properties = if object == "window" {
+        properties = if object == "" {
             f.borrow().stack[0]
                 .iter()
                 .map(|x| {

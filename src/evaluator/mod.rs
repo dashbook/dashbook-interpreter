@@ -8,10 +8,10 @@ use futures::stream::{self, StreamExt};
 use js_sys::Error;
 use std::cell::RefCell;
 use std::rc::Rc;
-use swc_common::{BytePos, Span, SyntaxContext};
 use swc_ecma_ast::*;
 use wasm_bindgen::prelude::*;
 
+pub mod class;
 pub mod expressions;
 pub mod functions;
 mod objects;
@@ -65,6 +65,7 @@ async fn eval<'env>(stmts: Vec<Stmt>, envs: &mut Environments) -> Result<RcValue
         .map(|x| x.0)
 }
 
+#[inline]
 async fn eval_module_decl(moddecl: ModuleDecl, envs: &mut Environments) -> Result<RcValue, Error> {
     match moddecl {
         ModuleDecl::Import(importdecl) => {

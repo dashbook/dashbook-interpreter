@@ -3,6 +3,7 @@ use js_sys::Error;
 use swc_ecma_ast::*;
 use wasm_bindgen::prelude::*;
 
+#[inline]
 pub fn eval_unary_expression(opr: UnaryOp, argument: &Value) -> Result<Value, Error> {
     match opr {
         UnaryOp::Bang => eval_not_operator(argument),
@@ -17,6 +18,7 @@ pub fn eval_unary_expression(opr: UnaryOp, argument: &Value) -> Result<Value, Er
     }
 }
 
+#[inline]
 pub fn eval_not_operator(argument: &Value) -> Result<Value, Error> {
     match argument {
         Value::Bool(x) => Ok(Value::Bool(JsBool::from(!x.value_of()))),
@@ -32,6 +34,7 @@ pub fn eval_not_operator(argument: &Value) -> Result<Value, Error> {
     }
 }
 
+#[inline]
 pub fn eval_minus_operator(argument: &Value) -> Result<Value, Error> {
     match argument {
         Value::Number(x) => Ok(Value::Number(JsNumber::from(-x.value_of()))),
@@ -42,6 +45,7 @@ pub fn eval_minus_operator(argument: &Value) -> Result<Value, Error> {
     }
 }
 
+#[inline]
 pub fn eval_plus_operator(argument: &Value) -> Result<Value, Error> {
     match argument {
         Value::Bool(x) => Ok(Value::Number(JsNumber::from(JsValue::from(x)))),
@@ -56,6 +60,7 @@ pub fn eval_plus_operator(argument: &Value) -> Result<Value, Error> {
     }
 }
 
+#[inline]
 pub fn eval_typeof_operator(argument: &Value) -> Result<Value, Error> {
     match argument {
         Value::Bool(_) => Ok(Value::String(JsString::from("boolean"))),
@@ -70,6 +75,8 @@ pub fn eval_typeof_operator(argument: &Value) -> Result<Value, Error> {
         Value::BigInt(_) => Ok(Value::String(JsString::from("bigint"))),
     }
 }
+
+#[inline]
 pub fn eval_void_operator(argument: &Value) -> Result<Value, Error> {
     match argument {
         Value::Bool(x) => {

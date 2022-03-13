@@ -10,6 +10,7 @@ use wasm_bindgen::prelude::*;
 
 use super::expressions::eval_expr;
 
+#[inline]
 pub async fn eval_obj_lit_expr(
     objlit: ObjectLit,
     envs: &mut Environments,
@@ -250,34 +251,76 @@ pub(crate) async fn get_prop_name(
     }
 }
 
+#[inline]
 pub async fn eval_member_expr(
     memexpr: MemberExpr,
     envs: &mut Environments,
 ) -> Result<RcValue, Error> {
-    let obj = evaluator::expressions::eval_expr(*memexpr.obj, envs).await?;
-    match memexpr.prop {
-        MemberProp::Ident(ident) => {
-            match Reflect::get(obj.borrow().as_ref(), &JsValue::from(ident.sym.to_string()))
-                .map_err(|x| Error::from(x))
-            {
-                Ok(js) => Ok(Value::from(js).into()),
-                Err(err) => Err(err),
+    match &*evaluator::expressions::eval_expr(*memexpr.obj.clone(), envs)
+        .await?
+        .borrow()
+    {
+        Value::Object(obj) => match memexpr.prop {
+            MemberProp::Ident(ident) => {
+                match Reflect::get(obj.as_ref(), &JsValue::from(ident.sym.to_string()))
+                    .map_err(|x| Error::from(x))
+                {
+                    Ok(js) => Ok(Value::from(js).into()),
+                    Err(err) => Err(err),
+                }
             }
-        }
-        MemberProp::Computed(computed) => {
-            let prop = evaluator::expressions::eval_expr(*computed.expr, envs).await?;
-            let prop = prop.borrow();
-            match Reflect::get(obj.borrow().as_ref(), prop.as_ref()).map_err(|x| Error::from(x)) {
-                Ok(js) => Ok(Value::from(js).into()),
-                Err(err) => Err(err),
+            MemberProp::Computed(computed) => {
+                let prop = evaluator::expressions::eval_expr(*computed.expr, envs).await?;
+                let prop = prop.borrow();
+                match Reflect::get(obj.as_ref(), prop.as_ref()).map_err(|x| Error::from(x)) {
+                    Ok(js) => Ok(Value::from(js).into()),
+                    Err(err) => Err(err),
+                }
             }
-        }
-        _ => Err(Error::new(&format!(
-            "ERROR: Private member expression could not be evaluated."
-        ))),
+            _ => Err(Error::new(&format!(
+                "ERROR: Private member expression could not be evaluated."
+            ))),
+        },
+        Value::JsFunction(obj) => match memexpr.prop {
+            MemberProp::Ident(ident) => {
+                match Reflect::get(obj.as_ref(), &JsValue::from(ident.sym.to_string()))
+                    .map_err(|x| Error::from(x))
+                {
+                    Ok(js) => Ok(Value::from(js).into()),
+                    Err(err) => Err(err),
+                }
+            }
+            MemberProp::Computed(computed) => {
+                let prop = evaluator::expressions::eval_expr(*computed.expr, envs).await?;
+                let prop = prop.borrow();
+                match Reflect::get(obj.as_ref(), prop.as_ref()).map_err(|x| Error::from(x)) {
+                    Ok(js) => Ok(Value::from(js).into()),
+                    Err(err) => Err(err),
+                }
+            }
+            _ => Err(Error::new(&format!(
+                "ERROR: Private member expression could not be evaluated."
+            ))),
+        },
+        Value::Undefined(_) => match *memexpr.obj {
+            Expr::Ident(ident) => Err(js_sys::ReferenceError::new(&format!(
+                "ERROR: {} is not defined.",
+                ident.sym
+            ))
+            .into()),
+            _ => Err(js_sys::ReferenceError::new(&format!(
+                "ERROR: {:?} is undefined.",
+                memexpr.obj
+            ))
+            .into()),
+        },
+        _ => Err(
+            js_sys::TypeError::new(&format!("ERROR: {:?} is not an object.", memexpr.obj)).into(),
+        ),
     }
 }
 
+#[inline]
 pub async fn assign_member_expr(
     memexpr: MemberExpr,
     rhsexpr: RcValue,
@@ -311,6 +354,7 @@ pub async fn assign_member_expr(
     }
 }
 
+#[inline]
 pub async fn eval_new_expr(newexpr: NewExpr, envs: &mut Environments) -> Result<RcValue, Error> {
     let function = evaluator::expressions::eval_expr(*newexpr.callee, envs).await?;
     let (args, _envs) = match newexpr.args {

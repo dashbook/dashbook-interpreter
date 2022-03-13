@@ -181,6 +181,9 @@ pub(crate) fn eval_expr<'a>(
                 };
                 Ok(Value::String(str).into())
             }
+            Expr::Class(class_expr) => class::eval_class(class_expr.class, envs)
+                .await
+                .map(|x| Value::JsFunction(x).into()),
             _ => Err(Error::new(&format!(
                 "ERROR: Expression {:?} is not supported.",
                 expr
@@ -284,6 +287,7 @@ pub(crate) async fn eval_assign_expr(
     }
 }
 
+#[inline]
 async fn eval_update_expression(
     update_expr: UpdateExpr,
     envs: &mut Environments,
