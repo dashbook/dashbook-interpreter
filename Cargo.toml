@@ -19,7 +19,6 @@ swc_atoms = "0.2.9"
 swc_ecma_ast = "0.70.0"
 swc_ecma_parser = "0.93.0"
 swc_ecma_visit = "0.56.0"
-parking_lot_core = "=0.9.1"
 wasm-bindgen = "0.2.79"
 wasm-bindgen-futures = "0.4.29"
 wasm-bindgen-test = "0.3.29"
@@ -44,6 +43,10 @@ features = [
     "HtmlElement",
 ]
 version = "0.3.56"
+
+[dependencies.instant]
+version = "0.1.12"
+features = ["wasm-bindgen"]
 
 [dependencies.swc_common]
 features = ["tty-emitter"]
