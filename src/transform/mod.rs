@@ -9,43 +9,47 @@ use swc_common::{
     errors::{ColorConfig, Handler},
     FileName, SourceMap,
 };
-use swc_common::{BytePos, Span, SyntaxContext};
+use swc_common::{BytePos, Globals, Span, SyntaxContext, GLOBALS};
 use swc_ecma_ast::*;
 use swc_ecma_visit::{noop_fold_type, Fold, FoldWith};
 
 #[inline]
 pub fn emit_js(body: Vec<Stmt>) -> Result<String, Error> {
-    let script = Script {
-        span: Span::new(BytePos(0), BytePos(0), SyntaxContext::empty()),
-        body: body,
-        shebang: None,
-    };
-    let program = Program::Script(script);
+    GLOBALS.set(&Globals::default(), || {
+        let script = Script {
+            span: Span::new(BytePos(0), BytePos(0), SyntaxContext::empty()),
+            body: body,
+            shebang: None,
+        };
+        let program = Program::Script(script);
 
-    let cm: Lrc<SourceMap> = Default::default();
-    let _fm = cm.new_source_file(FileName::Custom("jsfunction".into()), "".into());
-    let handler = Handler::with_tty_emitter(ColorConfig::Auto, true, false, Some(cm.clone()));
-    let pass = Folded;
-    let compiler = Compiler::new(cm);
+        let cm: Lrc<SourceMap> = Default::default();
+        let _fm = cm.new_source_file(FileName::Custom("jsfunction".into()), "".into());
+        let handler = Handler::with_tty_emitter(ColorConfig::Auto, true, false, Some(cm.clone()));
+        let pass = Folded;
+        let compiler = Compiler::new(cm);
 
-    let transformed_program = compiler.transform(&handler, program, false, pass);
-    let hasher = HashMap::with_hasher(RandomState::new());
+        let transformed_program = compiler.transform(&handler, program, false, pass);
+        let hasher = HashMap::with_hasher(RandomState::new());
 
-    compiler
-        .print(
-            &transformed_program,
-            None,
-            None,
-            false,
-            EsVersion::Es2015,
-            SourceMapsConfig::Bool(false),
-            &hasher,
-            None,
-            true,
-            None,
-        )
-        .map(|y| y.code)
-        .map_err(|_| Error::new("Error"))
+        compiler
+            .print(
+                &transformed_program,
+                None,
+                None,
+                false,
+                EsVersion::Es2015,
+                SourceMapsConfig::Bool(false),
+                &hasher,
+                None,
+                true,
+                None,
+                false,
+                false,
+            )
+            .map(|y| y.code)
+            .map_err(|_| Error::new("Error"))
+    })
 }
 
 struct Folded;

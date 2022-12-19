@@ -45,7 +45,7 @@ pub(crate) async fn eval_decl(decl: Decl, envs: &mut Environments) -> Result<RcV
         }
         Decl::Class(classdecl) => {
             let ident = classdecl.ident;
-            let class = class::eval_class(classdecl.class, envs).await?;
+            let class = class::eval_class(*classdecl.class, envs).await?;
             envs.insert(&ident.sym, Value::JsFunction(class).into())?;
             Ok(Value::Undefined(JsValue::undefined()).into())
         }

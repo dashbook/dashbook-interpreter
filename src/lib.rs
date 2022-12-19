@@ -46,7 +46,6 @@ extern "C" {
     #[wasm_bindgen(js_namespace = console)]
     fn log(s: &str);
 }
-
 thread_local! {
     pub static ENVS: RefCell<Environments> = RefCell::new(Environments::new());
 }
@@ -85,7 +84,7 @@ pub async fn eval_cell(input: String) -> Result<JsValue, JsValue> {
     let cm: Lrc<SourceMap> = Default::default();
     let handler = Handler::with_tty_emitter(ColorConfig::Auto, true, false, Some(cm.clone()));
 
-    let fm = cm.new_source_file(FileName::Custom("Weblab_cell".into()), input.into());
+    let fm = cm.new_source_file(FileName::Custom("Dashbook_cell".into()), input.into());
     let es_config: EsConfig = Default::default();
     let lexer = Lexer::new(
         Syntax::Es(es_config),

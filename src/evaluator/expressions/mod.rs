@@ -161,8 +161,8 @@ pub(crate) fn eval_expr<'a>(
                             let (string, envs) = acc?;
                             let expr = eval_expr(*x.0, envs).await?;
                             let next = JsString::from(JsValue::from_str(&match x.1.cooked {
-                                Some(y) => y.value,
-                                None => x.1.raw.value,
+                                Some(y) => y,
+                                None => x.1.raw,
                             }))
                             .concat(expr.borrow().as_ref());
                             let new = string.concat(&next);
@@ -173,15 +173,15 @@ pub(crate) fn eval_expr<'a>(
                     .0;
                 let str = if last.tail {
                     str.concat(&JsString::from(JsValue::from_str(match &last.cooked {
-                        Some(y) => &y.value,
-                        None => &last.raw.value,
+                        Some(y) => &y,
+                        None => &last.raw,
                     })))
                 } else {
                     str
                 };
                 Ok(Value::String(str).into())
             }
-            Expr::Class(class_expr) => class::eval_class(class_expr.class, envs)
+            Expr::Class(class_expr) => class::eval_class(*class_expr.class, envs)
                 .await
                 .map(|x| Value::JsFunction(x).into()),
             _ => Err(Error::new(&format!(
@@ -306,6 +306,7 @@ async fn eval_update_expression(
                 right: Box::new(Expr::Lit(Lit::Num(Number {
                     span: update_expr.span,
                     value: 1.0,
+                    raw: None,
                 }))),
             },
             envs,
@@ -318,6 +319,7 @@ async fn eval_update_expression(
                 right: Box::new(Expr::Lit(Lit::Num(Number {
                     span: update_expr.span,
                     value: 1.0,
+                    raw: None,
                 }))),
             },
             envs,

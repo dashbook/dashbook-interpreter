@@ -163,7 +163,7 @@ pub async fn eval_obj_lit_expr(
                                     )))?
                                     .stmts;
                                 let function: RcValue = functions::function_declaration(
-                                    vec![setter_prop.param],
+                                    vec![*setter_prop.param],
                                     body,
                                     false,
                                     envs,

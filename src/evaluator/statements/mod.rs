@@ -217,7 +217,7 @@ pub(crate) fn eval_stmt<'a>(
                     match for_of_stmt.left.clone() {
                         VarDeclOrPat::Pat(pat) => {
                             decl::set_pat(
-                                pat,
+                                *pat,
                                 Value::from(x?).into(),
                                 envs,
                                 decl::DeclOrAssign::Decl,
@@ -280,7 +280,7 @@ pub(crate) fn eval_stmt<'a>(
                     match for_in_stmt.left.clone() {
                         VarDeclOrPat::Pat(pat) => {
                             decl::set_pat(
-                                pat,
+                                *pat,
                                 Value::from(x).into(),
                                 envs,
                                 decl::DeclOrAssign::Decl,
