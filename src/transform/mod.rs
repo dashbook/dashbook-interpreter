@@ -1,9 +1,9 @@
 use ahash::RandomState;
 use js_sys::Error;
 use std::collections::HashMap;
-use string_cache::Atom;
 use swc::config::SourceMapsConfig;
 use swc::Compiler;
+use swc_atoms::Atom;
 use swc_common::sync::Lrc;
 use swc_common::{
     errors::{ColorConfig, Handler},
@@ -11,6 +11,7 @@ use swc_common::{
 };
 use swc_common::{BytePos, Globals, Span, SyntaxContext, GLOBALS};
 use swc_ecma_ast::*;
+use swc_ecma_codegen::Config;
 use swc_ecma_visit::{noop_fold_type, Fold, FoldWith};
 
 #[inline]
@@ -38,14 +39,13 @@ pub fn emit_js(body: Vec<Stmt>) -> Result<String, Error> {
                 None,
                 None,
                 false,
-                EsVersion::Es2015,
                 SourceMapsConfig::Bool(false),
                 &hasher,
                 None,
-                true,
                 None,
-                false,
-                false,
+                true,
+                "",
+                Config::default().with_target(EsVersion::Es2015),
             )
             .map(|y| y.code)
             .map_err(|_| Error::new("Error"))

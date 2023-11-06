@@ -81,7 +81,7 @@ pub(crate) fn eval_expr<'a>(
             )?
             .into()),
             Expr::Arrow(array_func_expr) => {
-                let body = functions::arrow_func_body(array_func_expr.body);
+                let body = functions::arrow_func_body(*array_func_expr.body);
                 functions::function_declaration(
                     array_func_expr.params,
                     body,

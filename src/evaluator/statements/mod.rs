@@ -215,7 +215,7 @@ pub(crate) fn eval_stmt<'a>(
                 for x in iterator.into_iter() {
                     envs.push_env();
                     match for_of_stmt.left.clone() {
-                        VarDeclOrPat::Pat(pat) => {
+                        ForHead::Pat(pat) => {
                             decl::set_pat(
                                 *pat,
                                 Value::from(x?).into(),
@@ -224,7 +224,7 @@ pub(crate) fn eval_stmt<'a>(
                             )
                             .await
                         }
-                        VarDeclOrPat::VarDecl(var_decls) => {
+                        ForHead::VarDecl(var_decls) => {
                             decl::set_pat(
                                 var_decls.decls[0].name.clone(),
                                 Value::from(x?).into(),
@@ -232,6 +232,9 @@ pub(crate) fn eval_stmt<'a>(
                                 decl::DeclOrAssign::Decl,
                             )
                             .await
+                        }
+                        ForHead::UsingDecl(_) => {
+                            Err(Error::new(&format!("Using decl not supported.")))
                         }
                     }?;
                     let body = *for_of_stmt.body.clone();
@@ -278,7 +281,7 @@ pub(crate) fn eval_stmt<'a>(
                 for x in right.iter().into_iter() {
                     envs.push_env();
                     match for_in_stmt.left.clone() {
-                        VarDeclOrPat::Pat(pat) => {
+                        ForHead::Pat(pat) => {
                             decl::set_pat(
                                 *pat,
                                 Value::from(x).into(),
@@ -287,7 +290,7 @@ pub(crate) fn eval_stmt<'a>(
                             )
                             .await
                         }
-                        VarDeclOrPat::VarDecl(var_decls) => {
+                        ForHead::VarDecl(var_decls) => {
                             decl::set_pat(
                                 var_decls.decls[0].name.clone(),
                                 Value::from(x).into(),
@@ -295,6 +298,9 @@ pub(crate) fn eval_stmt<'a>(
                                 decl::DeclOrAssign::Decl,
                             )
                             .await
+                        }
+                        ForHead::UsingDecl(_) => {
+                            Err(Error::new(&format!("Using decl not supported.")))
                         }
                     }?;
                     let body = *for_in_stmt.body.clone();
